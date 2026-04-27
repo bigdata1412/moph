@@ -2,23 +2,29 @@ name: MOPH-Update-BigQuery
 
 on:
   schedule:
-    - cron: '0 1 * * *' # รันทุกวันตอน 08:00 น. เวลาไทย
-  workflow_dispatch: # ปุ่มกดรันเองเพื่อทดสอบ
+    - cron: '0 1 * * *' # รันอัตโนมัติทุกวันเวลา 08:00 น. ไทย
+  workflow_dispatch: # ปุ่มกดรันเองได้ตลอดเวลา
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true # ช่วยให้โหลด Package เร็วขึ้นมาก
 
-      - name: Install dependencies
+      - name: Install System Dependencies
         run: |
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
-          Rscript -e 'install.packages(c("httr2", "jsonlite", "tidyverse", "bigrquery", "gargle"))'
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+
+      - name: Install R Packages
+        run: |
+          Rscript -e 'install.packages(c("tidyverse", "httr2", "jsonlite", "bigrquery", "gargle", "readr"), dependencies = TRUE)'
 
       - name: Run R Script
         env:
