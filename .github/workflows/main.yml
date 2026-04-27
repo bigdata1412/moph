@@ -1,0 +1,28 @@
+name: MOPH-Update-BigQuery
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # รันทุกวันตอน 08:00 น. เวลาไทย
+  workflow_dispatch: # ปุ่มกดรันเองเพื่อทดสอบ
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+          Rscript -e 'install.packages(c("httr2", "jsonlite", "tidyverse", "bigrquery", "gargle"))'
+
+      - name: Run R Script
+        env:
+          GCP_AUTH: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$GCP_AUTH" > auth_key.json
+          Rscript main.R
